@@ -89,8 +89,8 @@ def train(data_conf, model_conf, **kwargs):
     #model_df = DataFrame(model_df._table_name, materialize=True)
 
     # append to models table
-    #model_df.to_sql("aoa_sto_models", if_exists="append")
-    copy_to_sql(df=model_df, table_name="aoa_sto_models", schema_name='AOA_DEMO', if_exists="append", index=True, index_label='index')
+    model_df.to_sql("aoa_sto_models", if_exists="append")
+    #copy_to_sql(df=model_df, table_name="aoa_sto_models", schema_name='AOA_DEMO', if_exists="append", index=True, index_label='index')
 
     #save_metadata(model_df)
 

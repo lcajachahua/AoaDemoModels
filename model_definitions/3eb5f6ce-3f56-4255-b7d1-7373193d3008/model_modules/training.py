@@ -74,8 +74,8 @@ def train(data_conf, model_conf, **kwargs):
 
     print("Starting training...")
 
-    #df = DataFrame.from_query("SELECT * FROM {table}".format(table=data_conf["data_table"]))
-    df = DataFrame.from_query("SELECT top 1000 * FROM {table}".format(table=data_conf["data_table"]))
+    df = DataFrame.from_query("SELECT * FROM {table}".format(table=data_conf["data_table"]))
+    #df = DataFrame.from_query("SELECT top 1000 * FROM {table}".format(table=data_conf["data_table"]))
     model_df = df.map_partition(lambda partition: train_partition(partition, model_version, hyperparams),
                                 data_partition_column="center_id",
                                 returns=dict([("partition_id", VARCHAR()),

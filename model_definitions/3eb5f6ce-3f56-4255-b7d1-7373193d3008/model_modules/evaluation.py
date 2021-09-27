@@ -1,6 +1,5 @@
 from teradataml import create_context
 from teradataml.dataframe.dataframe import DataFrame
-from tdextensions.distributed import DistDataFrame, DistMode
 from sklearn import metrics
 from aoa.sto.util import save_metadata, save_evaluation_metrics
 
@@ -20,11 +19,13 @@ def evaluate(data_conf, model_conf, **kwargs):
                    database=data_conf["schema"] if "schema" in data_conf and data_conf["schema"] != "" else None)
 
     def eval_partition(partition):
+        target_column = data_conf["target_column"]
+        partition = partition.read()
         model_artefact = partition.loc[partition['n_row'] == 1, 'model_artefact'].iloc[0]
         model = dill.loads(base64.b64decode(model_artefact))
 
         X_test = partition[model.features]
-        y_test = partition[['Y1']]
+        y_test = partition[[target_column]]
 
         y_pred = model.predict(X_test)
 
@@ -41,25 +42,28 @@ def evaluate(data_conf, model_conf, **kwargs):
         })
 
         return np.array([[partition_id, partition.shape[0], partition_metadata]])
+        # we join the model artefact to the 1st row of the data table so we can load it in the partition
+        partition_id = data_conf["partition_column"]
 
-    # we join the model artefact to the 1st row of the data table so we can load it in the partition
     query = f"""
     SELECT d.*, CASE WHEN n_row=1 THEN m.model_artefact ELSE null END AS model_artefact 
-        FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.partition_id ORDER BY x.partition_id) AS n_row FROM {data_conf["table"]} x) AS d
+        FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.{partition_id} ORDER BY x.{partition_id}) AS n_row 
+        FROM {data_conf["data_table"]} x) AS d
         LEFT JOIN aoa_sto_models m
-        ON d.partition_id = m.partition_id
-        WHERE m.model_version = '{model_version}'
+        ON d.{partition_id} = CAST(m.partition_id AS BIGINT)
+        WHERE m.model_version =  '{model_version}'
     """
-
-    df = DistDataFrame(query=query, dist_mode=DistMode.STO, sto_id="model_eval")
+    #query
+    df = DataFrame(query=query)
     eval_df = df.map_partition(lambda partition: eval_partition(partition),
-                               partition_by="partition_id",
-                               returns=[["partition_id", "VARCHAR(255)"],
-                                        ["num_rows", "BIGINT"],
-                                        ["partition_metadata", "CLOB"]])
+                               data_partition_column=partition_id,
+                               returns=dict([("partition_id", VARCHAR()),
+                                             ("num_rows", BIGINT()),
+                                             ("partition_metadata", CLOB())]),
+                              )
 
     # materialize as we reuse result
-    eval_df = DataFrame(eval_df._table_name, materialize=True)
+    #eval_df = DataFrame(eval_df._table_name, materialize=True)
 
     save_metadata(eval_df)
     save_evaluation_metrics(eval_df, ["MAE", "MSE", "R2"])

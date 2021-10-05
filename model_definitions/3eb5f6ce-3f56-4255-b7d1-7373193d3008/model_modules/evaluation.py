@@ -24,6 +24,8 @@ def evaluate(data_conf, model_conf, **kwargs):
         model_artefact = partition.loc[partition['n_row'] == 1, 'model_artefact'].iloc[0]
         model = dill.loads(base64.b64decode(model_artefact))
 
+        categorical_columns = data_conf["categorical_columns"]
+        partition[categorical_columns] = partition[categorical_columns].astype("category")
         X_test = partition[model.features]
         y_test = partition[[target_column]]
 
@@ -43,15 +45,15 @@ def evaluate(data_conf, model_conf, **kwargs):
 
         return np.array([[partition_id, partition.shape[0], partition_metadata]])
         # we join the model artefact to the 1st row of the data table so we can load it in the partition
-        partition_id = data_conf["partition_column"]
-
+    
+    partition_id = data_conf["partition_column"]
     query = f"""
-    SELECT d.*, CASE WHEN n_row=1 THEN m.model_artefact ELSE null END AS model_artefact 
+        SELECT d.*, CASE WHEN n_row=1 THEN m.model_artefact ELSE null END AS model_artefact 
         FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.{partition_id} ORDER BY x.{partition_id}) AS n_row 
         FROM {data_conf["data_table"]} x) AS d
         LEFT JOIN aoa_sto_models m
         ON d.{partition_id} = CAST(m.partition_id AS BIGINT)
-        WHERE m.model_version =  '{model_version}'
+        WHERE m.model_version = '{model_version}'
     """
     #query
     df = DataFrame(query=query)

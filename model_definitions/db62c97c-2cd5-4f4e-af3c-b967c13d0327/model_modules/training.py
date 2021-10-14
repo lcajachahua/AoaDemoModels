@@ -62,7 +62,8 @@ def train(data_conf, model_conf, **kwargs):
     excluded_cols = [target_column]
     for index, feature in enumerate(categorical_columns):
         ohe = one_hot_encode[index]
-        f_name = ohe.values[-1] + "_" + feature
+        if len(ohe.values) > 1:
+            f_name = ohe.values[-1] + "_" + feature
         excluded_cols.append(f_name)
     features = [col_name for col_name in df_train.columns if not col_name in excluded_cols]
 
@@ -75,7 +76,7 @@ def train(data_conf, model_conf, **kwargs):
                          response_column=target_column,
                          entrance_criterion=hyperparams["entrance_criterion"],
                          use_fstat=hyperparams["use_fstat"],
-                         use_pstat: hyperparams["use_pstat"]   
+                         use_pstat=hyperparams["use_pstat"]   
                         )
 
     print("Finished training")

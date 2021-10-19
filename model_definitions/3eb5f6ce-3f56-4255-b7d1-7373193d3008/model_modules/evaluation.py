@@ -46,7 +46,7 @@ def evaluate(data_conf, model_conf, **kwargs):
         return np.array([[partition_id, partition.shape[0], partition_metadata]])
         # we join the model artefact to the 1st row of the data table so we can load it in the partition
     
-    partition_id = data_conf["partition_column"]
+    partition_id = "center_id" #data_conf["partition_column"]
     query = f"""
         SELECT d.*, CASE WHEN n_row=1 THEN m.model_artefact ELSE null END AS model_artefact 
         FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.{partition_id} ORDER BY x.{partition_id}) AS n_row 

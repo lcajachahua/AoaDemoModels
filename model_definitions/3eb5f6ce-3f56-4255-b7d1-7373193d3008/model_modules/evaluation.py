@@ -53,7 +53,7 @@ def evaluate(data_conf, model_conf, **kwargs):
         FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.{partition_id} ORDER BY x.{partition_id}) AS n_row 
         FROM {data_conf["data_table"]} x) AS d
         LEFT JOIN aoa_sto_models m
-        ON d.{partition_id} = CAST(m.partition_id AS BIGINT)
+        ON d.{partition_id} = CAST(m.{partition_id} AS BIGINT)
         WHERE m.model_version = '{model_version}'
     """
     #query

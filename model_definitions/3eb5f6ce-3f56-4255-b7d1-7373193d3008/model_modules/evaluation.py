@@ -1,5 +1,6 @@
 from teradataml import create_context
 from teradataml.dataframe.dataframe import DataFrame
+from teradatasqlalchemy.types import VARCHAR, BIGINT, CLOB
 from sklearn import metrics
 from aoa.sto.util import save_metadata, save_evaluation_metrics
 

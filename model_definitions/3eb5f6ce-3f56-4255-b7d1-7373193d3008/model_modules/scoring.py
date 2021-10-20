@@ -1,7 +1,12 @@
 from teradataml import create_context
-from tdextensions.distributed import DistDataFrame, DistMode
+from teradataml.dataframe.dataframe import DataFrame
+from teradatasqlalchemy.types import VARCHAR
+from sklearn import metrics
+from aoa.sto.util import save_metadata, save_evaluation_metrics
 
 import os
+import numpy as np
+import json
 import base64
 import dill
 
@@ -26,13 +31,13 @@ def score(data_conf, model_conf, **kwargs):
         return model.predict(X)
 
     # we join the model artefact to the 1st row of the data table so we can load it in the partition
-    partition_id = data_conf["partition_column"]
+    partition_id = "center_id" #data_conf["partition_column"]
     query = f"""
         SELECT d.*, CASE WHEN n_row=1 THEN m.model_artefact ELSE null END AS model_artefact 
         FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.{partition_id} ORDER BY x.{partition_id}) AS n_row 
         FROM {data_conf["data_table"]} x) AS d
         LEFT JOIN aoa_sto_models m
-        ON d.{partition_id} = CAST(m.partition_id AS BIGINT)
+        ON d.{partition_id} = CAST(m.{partition_id} AS BIGINT)
         WHERE m.model_version = '{model_version}'
     """
     df = DataFrame(query=query)

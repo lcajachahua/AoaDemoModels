@@ -52,13 +52,13 @@ def train(data_conf, model_conf, **kwargs):
         train_df = partition[features + [target_column]]
         train_df[categorical_columns] = train_df[categorical_columns].astype("category")
 
-    #     print('Loaded data ...')
+        print('Loaded data ...')
         # preprocess training data and train the model
         X_train = train_df[features]
         y_train = train_df[target_column]
         model.fit(X_train, y_train)
 
-    #     print("Finished training")
+        print("Finished training")
         model.features = features
 
         partition_id = partition.loc[0, 'center_id']
@@ -87,10 +87,10 @@ def train(data_conf, model_conf, **kwargs):
     #model_df = DataFrame(model_df._table_name, materialize=True)
 
     # append to models table
-    model_df.to_sql("aoa_sto_models", if_exists="append")
-    #copy_to_sql(df=model_df, table_name="aoa_sto_models", schema_name='AOA_DEMO', if_exists="append", index=True, index_label='index')
+    #model_df.to_sql("aoa_sto_models", if_exists="append")
+    copy_to_sql(df=model_df, table_name="aoa_sto_models", schema_name='AOA_DEMO', if_exists="append", index=True, index_label='index')
 
-    #save_metadata(model_df)
+    save_metadata(model_df)
 
     print("Finished training")
     

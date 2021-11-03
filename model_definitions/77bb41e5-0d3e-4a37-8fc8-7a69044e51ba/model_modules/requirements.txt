@@ -1,0 +1,10 @@
+xgboost>=0.90
+numpy>=1.16.1
+pandas>=0.24.2
+scikit-learn>=0.22.2
+matplotlib>=2.2.2
+xlrd>=1.2.0
+shap==0.36.0
+teradataml>=17.0.0.2
+nyoka>=4.3.0
+aoa>=4.1.4

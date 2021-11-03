@@ -1,0 +1,6 @@
+{
+    "id": "77bb41e5-0d3e-4a37-8fc8-7a69044e51ba",
+    "name": "XGBoost in CC",
+    "description": "XGBoost Model for Default Prediction in Credit Cards",
+    "language": "python"
+}

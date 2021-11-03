@@ -1,0 +1,7 @@
+{
+  "hyperParameters": {
+    "eta": 0.003,
+    "max_depth": 6,
+    "n_estimators": 100
+  }
+}

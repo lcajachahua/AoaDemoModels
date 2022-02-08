@@ -22,7 +22,8 @@ def evaluate(data_conf, model_conf, **kwargs):
 
     create_context(host=os.environ["AOA_CONN_HOST"],
                    username=os.environ["AOA_CONN_USERNAME"],
-                   password=os.environ["AOA_CONN_PASSWORD"])
+                   password=os.environ["AOA_CONN_PASSWORD"],
+                   database=data_conf["schema"] if "schema" in data_conf and data_conf["schema"] != "" else None)
 
     # Read test dataset from Teradata
     # As this is for demo purposes, we simulate the test dataset changing between executions
@@ -52,12 +53,3 @@ def evaluate(data_conf, model_conf, **kwargs):
     metrics.plot_roc_curve(model, X_test, y_test)
     save_plot('ROC Curve')
 
-    # xgboost has its own feature importance plot support but lets use shap as explainability example
-    import shap
-
-    shap_explainer = shap.TreeExplainer(model['xgb'])
-    shap_values = shap_explainer.shap_values(X_test)
-
-    shap.summary_plot(shap_values, X_test, feature_names=model.feature_names,
-                      show=False, plot_size=(12,8), plot_type='bar')
-    save_plot('SHAP Feature Importance')
